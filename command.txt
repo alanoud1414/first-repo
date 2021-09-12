@@ -1,0 +1,4 @@
+show vlan 
+show running-config
+show access-lists
+show interface trunk 
