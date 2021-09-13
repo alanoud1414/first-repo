@@ -1,35 +1,37 @@
-#-------------------------------------------------------------#
-#This script will logging ssh to multiple same devices, run commands in each to pull info,
-#and store the result in separate file.
-#Using the netmiko library for CLI interfacing.
-#The steps:
-#   1- Logging ssh (username - password).
-#   2- Take the files name: 
-#        - file contain the list of IP's.
-#        - file contain the list fo commmand.
-#   3- Run the command once for each ip.
-#   4- Store the output in file.
-#   5- Error Handling.
-#   6- Support different type of devices, just change the device type depending on the devices
-#      you are working on.
-#-------------------------------------------------------------#
+'''
+##########################################################################################
+- This script will logging ssh to multiple same devices, run commands in each to pull info,
+  and store the result in separate file / print it in CMD.
+- Using the netmiko library.
+The steps:
+   1- Full the ip.txt file with list of Switches IP's.
+   2- Full the ip.txt file with list of Switches IP's.
+   3- writing your Username and Password.
+   4- Choose the way of output result.
+   5- Support different type of devices, just change the device 
+      type depending on the devices you are working on.
 
+- Functions:
 
-
+    ConnectHandler() -- To connect to the device based on device type.
+    AuthenticationException() -- Handling the Authentication error.
+    getpass() -- Get user password.
+    datetime() -- Print the current time.
+    strftime() -- To specify the format of the time.
+    List_Of_Content() -- Extract all files content and save it inside empty list.
+    dirname() -- Returns the directory component of a pathname.
+    abspath() -- Return an absolute path.
+##########################################################################################'''
 __author__ = "Alanoud Alfawzan"
 __author_email__ = "alanoud.alfawzan@kaust.edu.sa"
  
-#List of modules 
 from netmiko import ConnectHandler
-#To connect to the device based on device type.
 from netmiko.ssh_exception import AuthenticationException
-#Handling the Authentication error
 import getpass
-#Get user password
 import datetime
-#Print the current time
 import os 
-#Return the current working directory
+
+
 
 
 #-------------------------------------------------------------#
@@ -39,27 +41,7 @@ now = datetime.datetime.now()
 final_time=now.strftime('%H:%M:%S on %A, %B the %dth, %Y')
 
 
-#-------------------------------------------------------------#
-#To check the extention of the files, must end with .txt
-def test_file_extension(file_name):
-    extension=file_name[len(file_name)-4: len(file_name)]
-    while extension !='.txt':
-        print('!!! WRONG !!! \n Please your file name must end with .txt extension')
-        file_name=input(' Enter your file name again: \n')
-        extension=file_name[len(file_name)-4: len(file_name)]
-    return file_name
 
-
-#-------------------------------------------------------------#
-#Open files, Readlines, Store values as list, Return the list
-def Is_It_Existed(user_file):
-    try:
-        #Open the file based on you working directory
-        open_files=open(os.path.dirname(os.path.abspath(__file__))+r'\\'+user_file ,'r')   
-    except FileNotFoundError:
-        print('Sorry The File Not Found')
-        exit()
-    return open_files
 #-------------------------------------------------------------#
 #Extract all files content and save it inside empty list   
 def List_Of_Content(file):
@@ -73,16 +55,12 @@ def List_Of_Content(file):
   
 #-------------------------------------------------------------#
 #IP file
-File_name_ip=input('Enter your IP file name with .txt extenstion:\n').strip()#Take the file name from user
-Check_Extension_ip=test_file_extension(File_name_ip)#Check file location 
-File_Existedip=Is_It_Existed(Check_Extension_ip)#Check file extention
-IP_list=List_Of_Content(File_Existedip)#Return the file content in list
-
+File_name_ip= open (os.path.dirname(os.path.abspath(__file__))+'\\'+'ip.txt','r')
+IP_list=List_Of_Content(File_name_ip)
 #Command file
-File_name=input('Enter your command file name with .txt extenstion:\n').strip()
-Check_Extension=test_file_extension(File_name)
-File_Excited=Is_It_Existed(Check_Extension)
-Command_list=List_Of_Content(File_Excited)
+File_name=open (os.path.dirname(os.path.abspath(__file__))+'\\'+'command.txt','r')
+Command_list=List_Of_Content(File_name)
+out_put=int(input('Please Choose (1) to Show The Output on CMD or Choose (2) to Create New File:\n'))
 #-------------------------------------------------------------#
 
 
@@ -104,14 +82,23 @@ for IP in IP_list:
         exit()
 
     # to save the output in .txt file / to show the result in CMD
-    for command in Command_list:
-        #output=connect.send_command(command)
-        #print(output)
-        with open (os.path.dirname(os.path.abspath(__file__))+r'\\'+'Output.txt','a') as new_file:
-            new_file.write('\n')
-            new_file.write(IP+'#'+command+'\n')
-            new_file.write(connect.send_command(command))
-            new_file.write('\n')
+    if out_put == 1:
+        print('Now Will Gather Information From IP :'+IP)
+        for command in Command_list:
+            output=connect.send_command(command)
+            print(output)
+    elif out_put == 2:
+        print('Now Will Gather Information From IP :'+IP)
+        for command in Command_list:
+            with open (os.path.dirname(os.path.abspath(__file__))+r'\\'+'Output.txt','a') as new_file:
+                new_file.write('\n')
+                new_file.write(IP+'#'+command+'\n')
+                new_file.write(connect.send_command(command))
+                new_file.write('\n')
+    else:
+        print('sorry you enter wrong value'.title())
+        print('Run the programm again'.title())
+        exit()
 
 
 print('*'*50)
